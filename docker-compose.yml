@@ -1,0 +1,189 @@
+version: '3.8'
+
+services:
+
+  init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: init
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - COMPOSER_ALLOW_SUPERUSER=1
+      - APP_ENV=dev
+      - APP_SECRET=581629197ace0e32195b3bcbe79e6a9a1ab1641b67ecca4906e94fbc797bc674
+      - APP_DEBUG=true
+      - MAILER_DSN=null://null
+      - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/exchange?serverVersion=16&charset=utf8
+      - MESSENGER_TRANSPORT_DSN_FETCH=amqp://guest:guest@rabbitmq:5672/%2f/fetch
+      - MESSENGER_TRANSPORT_DSN_SAVE=amqp://guest:guest@rabbitmq:5672/%2f/save
+    command: >
+      sh -c "
+        if [ ! -f 'composer.json' ]; then
+          echo '📦 Создание нового Symfony проекта...'
+          composer create-project symfony/skeleton .
+          
+          echo '📚 Установка дополнительных компонентов Symfony...'
+          composer require symfony/framework-bundle symfony/console symfony/routing symfony/http-client symfony/serializer symfony/messenger symfony/runtime symfony/yaml doctrine/orm doctrine/doctrine-bundle doctrine/migrations symfony/dotenv doctrine/annotations doctrine/doctrine-migrations-bundle symfony/amqp-messenger
+          
+          echo '🧪 Установка dev зависимостей для тестов...'
+          composer require --dev phpunit/phpunit symfony/browser-kit symfony/css-selector symfony/maker-bundle
+          
+          echo '✅ Symfony проект создан успешно!'
+          
+          echo '🗄️ Настройка Doctrine...'
+          php bin/console doctrine:database:create --if-not-exists
+          php bin/console doctrine:schema:create
+          
+          echo '📝 Создание миграций...'
+          php bin/console make:migration
+          
+          echo '🔄 Применение миграций...'
+          php bin/console doctrine:migrations:migrate --no-interaction
+          
+          echo '🧹 Очистка кэша...'
+          php bin/console cache:clear
+          
+          echo '🔧 Установка прав доступа...'
+          chmod -R 777 var/
+          chmod -R 777 public/
+          
+        else
+          echo '📦 Установка зависимостей...'
+          composer install
+          echo '✅ Зависимости установлены!'
+        fi
+        
+        echo '🎉 Проект готов к запуску!'
+        exit 0
+      "
+    restart: "no"
+    networks:
+      - app-network
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      - COMPOSER_ALLOW_SUPERUSER=1
+      - APP_ENV=dev
+      - APP_SECRET=581629197ace0e32195b3bcbe79e6a9a1ab1641b67ecca4906e94fbc797bc674
+      - APP_DEBUG=true
+      - MAILER_DSN=null://null
+      - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/exchange?serverVersion=16&charset=utf8
+      - MESSENGER_TRANSPORT_DSN_FETCH=amqp://guest:guest@rabbitmq:5672/%2f/fetch
+      - MESSENGER_TRANSPORT_DSN_SAVE=amqp://guest:guest@rabbitmq:5672/%2f/save
+      - FREECURRENCY_API_KEY=fca_live_39Qslt9C94E5nH6v45i5zaUWtqb5qPGepMitE9T4
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: exchange
+      POSTGRES_USER: symfony
+      POSTGRES_PASSWORD: symfony
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # RabbitMQ management UI
+    networks:
+      - app-network
+
+  cron:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cron
+    command: >
+      sh -c "
+        chmod 0644 /etc/cron.d/cronfile &&
+        crontab /etc/cron.d/cronfile &&
+        touch /var/log/cron.log &&
+        cron -f
+      "
+    volumes:
+      - ./:/var/www/html
+      - ./docker/cron/cronfile:/etc/cron.d/cronfile
+    depends_on:
+      - init
+    environment:
+      - COMPOSER_ALLOW_SUPERUSER=1
+      - APP_ENV=dev
+      - APP_SECRET=581629197ace0e32195b3bcbe79e6a9a1ab1641b67ecca4906e94fbc797bc674
+      - APP_DEBUG=true
+      - MAILER_DSN=null://null
+      - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/exchange?serverVersion=16&charset=utf8
+      - MESSENGER_TRANSPORT_DSN_FETCH=amqp://guest:guest@rabbitmq:5672/%2f/fetch
+      - MESSENGER_TRANSPORT_DSN_SAVE=amqp://guest:guest@rabbitmq:5672/%2f/save
+      - FREECURRENCY_API_KEY=fca_live_39Qslt9C94E5nH6v45i5zaUWtqb5qPGepMitE9T4
+    networks:
+      - app-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: worker
+    command: ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+    volumes:
+      - ./:/var/www/html
+      - ./docker/supervisor/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+    depends_on:
+      - init
+    environment:
+      - COMPOSER_ALLOW_SUPERUSER=1
+      - APP_ENV=dev
+      - APP_SECRET=581629197ace0e32195b3bcbe79e6a9a1ab1641b67ecca4906e94fbc797bc674
+      - APP_DEBUG=true
+      - MAILER_DSN=null://null
+      - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/exchange?serverVersion=16&charset=utf8
+      - MESSENGER_TRANSPORT_DSN_FETCH=amqp://guest:guest@rabbitmq:5672/%2f/fetch
+      - MESSENGER_TRANSPORT_DSN_SAVE=amqp://guest:guest@rabbitmq:5672/%2f/save
+      - FREECURRENCY_API_KEY=fca_live_39Qslt9C94E5nH6v45i5zaUWtqb5qPGepMitE9T4
+    networks:
+      - app-network
+
+volumes:
+  pgdata:
+
+networks:
+  app-network:
+    driver: bridge 

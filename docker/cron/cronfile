@@ -1,0 +1,9 @@
+# Планирование получения курсов валют каждую минуту
+* * * * * /usr/local/bin/php /var/www/html/bin/console app:schedule-fetch-rates >> /var/log/cron.log 2>&1
+# Очистка старых записей каждый день в 2:00
+0 2 * * * cd /var/www/html && php bin/console app:exchange-rates:update --cleanup --days=30 >> /var/log/cron.log 2>&1
+# Тесты
+#* * * * * /usr/local/bin/run_schedule.sh
+#* * * * * echo "🕐 $(date)" >> /tmp/cron.log 2>&1
+#* * * * * echo "🕐 $(date)" >> /tmp/cron_test.log
+#* * * * * /usr/local/bin/php /var/www/html/test_env.php

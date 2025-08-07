@@ -1,0 +1,10 @@
+# Подключаем API маршруты
+api_routes:
+    resource: routes/api.yaml
+
+# Web маршруты (если будут)
+web_controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute 

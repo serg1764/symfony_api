@@ -1,0 +1,8 @@
+services:
+    # В dev среде используем реальный API сервис
+    App\Infrastructure\External\ExchangeRateApiInterface:
+        class: App\Infrastructure\External\FreeCurrencyApiService
+        arguments:
+            $httpClient: '@Symfony\Contracts\HttpClient\HttpClientInterface'
+            $apiKey: '%env(FREECURRENCY_API_KEY)%'
+            $dbLogger: '@App\Service\DbLoggerInterface'

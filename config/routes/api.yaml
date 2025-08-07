@@ -1,0 +1,5 @@
+# API маршруты
+api_controllers:
+    resource: ../../src/Presentation/Controller/
+    type: attribute
+    prefix: /api 

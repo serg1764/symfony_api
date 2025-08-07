@@ -1,0 +1,17 @@
+framework:
+    secret: 'test-secret-key'
+    http_client: ~
+    messenger:
+        default_bus: command.bus
+        buses:
+            command.bus:
+                middleware:
+                    - doctrine_transaction
+            query.bus: ~
+        transports:
+            async_fetch: '%env(MESSENGER_TRANSPORT_DSN_FETCH)%'
+            async_save: '%env(MESSENGER_TRANSPORT_DSN_SAVE)%'
+            failed: 'doctrine://default?queue_name=failed'
+        routing:
+            App\Application\Message\FetchRateMessage: async_fetch
+            App\Application\Message\SaveRateMessage: async_save 

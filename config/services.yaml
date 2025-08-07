@@ -1,0 +1,111 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Kernel.php'
+
+    # Контроллеры
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
+
+    App\Presentation\Controller\:
+        resource: '../src/Presentation/Controller/'
+        tags: ['controller.service_arguments']
+
+    # Репозитории
+    App\Domain\Repository\CurrencyPairRepositoryInterface:
+        class: App\Infrastructure\Repository\CurrencyPairRepository
+
+    App\Domain\Repository\ExchangeRateHistoryRepositoryInterface:
+        class: App\Infrastructure\Repository\ExchangeRateHistoryRepository
+
+    # Внешние сервисы (конфигурируется в packages/{env}/services.yaml)
+    # App\Infrastructure\External\ExchangeRateApiInterface:
+    #     class: App\Infrastructure\External\FreeCurrencyApiService
+
+    # Доменные сервисы
+    App\Domain\Service\CurrencyPairService: ~
+
+    # Инфраструктурные сервисы
+    App\Infrastructure\Service\ExchangeRateUpdateService: ~
+
+    # Обработчики команд/запросов
+    App\Application\Handler\GetExchangeRateHandler: ~
+
+    App\Application\Handler\AddCurrencyPairHandler: ~
+
+    # Обработчики сообщений для очередей
+    App\Application\Handler\FetchRateMessageHandler:
+        tags:
+            - { name: 'messenger.message_handler' }
+
+    App\Application\Handler\SaveRateMessageHandler:
+        tags:
+            - { name: 'messenger.message_handler' }
+
+    App\Application\Handler\FailedMessageHandler:
+        tags:
+            - { name: 'messenger.message_handler' }
+
+    # Консольные команды
+    App\Application\Command\AddCurrencyPairConsoleCommand:
+        tags:
+            - { name: 'console.command' }
+
+    App\Application\Command\UpdateExchangeRatesConsoleCommand:
+        tags:
+            - { name: 'console.command' }
+
+    App\Application\Command\ScheduleFetchRatesConsoleCommand:
+        tags:
+            - { name: 'console.command' }
+
+    App\Application\Command\GenerateCurrencyPairEntityConsoleCommand:
+        tags:
+            - { name: 'console.command' }
+
+    App\Application\Command\TestDispatchCommand:
+        tags:
+            - { name: 'console.command' }
+
+    App\Application\Command\TestDbLoggerConsoleCommand:
+        tags:
+            - { name: 'console.command' }
+
+
+
+    # Обработчик исключений
+    App\Presentation\Exception\GlobalExceptionHandler:
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.exception' }
+
+    # Обработчики событий
+    App\Application\EventSubscriber\CurrencyPairEventSubscriber: ~
+
+    App\Application\EventSubscriber\ExchangeRateEventSubscriber: ~
+
+    # Application сервисы
+    App\Application\Service\CurrencyValidationServiceInterface:
+        class: App\Application\Service\CurrencyValidationService
+    App\Application\Service\ApiResponseServiceInterface:
+        class: App\Application\Service\ApiResponseService
+    App\Application\Service\ExchangeRateStatisticsServiceInterface:
+        class: App\Application\Service\ExchangeRateStatisticsService
+
+
+
+    # DbLogger
+    App\Service\DbLoggerInterface:
+        class: App\Service\DbLogger
+
+    # LogEntry Repository
+    App\Domain\Repository\LogEntryRepositoryInterface:
+        class: App\Infrastructure\Repository\LogEntryRepository 

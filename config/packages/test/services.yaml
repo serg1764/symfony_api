@@ -1,0 +1,6 @@
+services:
+    # В тестовой среде используем mock сервис
+    App\Infrastructure\External\ExchangeRateApiInterface:
+        class: App\Infrastructure\External\MockExchangeRateApiService
+        arguments:
+            $dbLogger: '@App\Service\DbLoggerInterface'

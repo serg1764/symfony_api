@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symfony API Тестирование</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .endpoint {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .endpoint h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .method {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .url {
+            background: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            color: #495057;
+            margin: 10px 0;
+        }
+
+        .button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+
+        .button:hover {
+            background: #5a6fd8;
+        }
+
+        .button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .response {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Symfony API Тестирование</h1>
+            <p>Интерактивная панель для тестирования API эндпоинтов</p>
+        </div>
+
+        <div class="content">
+            <!-- Главная страница -->
+            <div class="endpoint">
+                <h3>
+                    <span class="method">GET</span>
+                    Главная страница
+                </h3>
+                <div class="url">/</div>
+                <button class="button" onclick="testEndpoint('GET', '/')">Тестировать</button>
+                <div class="response" id="response-home" style="display: none;"></div>
+            </div>
+
+            <!-- Тестовый эндпоинт -->
+            <div class="endpoint">
+                <h3>
+                    <span class="method">GET</span>
+                    Тестовый эндпоинт
+                </h3>
+                <div class="url">/api/test</div>
+                <button class="button" onclick="testEndpoint('GET', '/api/test')">Тестировать</button>
+                <div class="response" id="response-test" style="display: none;"></div>
+            </div>
+
+            <!-- Получение пользователей -->
+            <div class="endpoint">
+                <h3>
+                    <span class="method">GET</span>
+                    Получение пользователей
+                </h3>
+                <div class="url">/api/users</div>
+                <button class="button" onclick="testEndpoint('GET', '/api/users')">Тестировать</button>
+                <div class="response" id="response-users" style="display: none;"></div>
+            </div>
+
+            <!-- Создание пользователя -->
+            <div class="endpoint">
+                <h3>
+                    <span class="method">POST</span>
+                    Создание пользователя
+                </h3>
+                <div class="url">/api/users</div>
+                
+                <div class="form-group">
+                    <label for="user-name">Имя:</label>
+                    <input type="text" id="user-name" value="Тестовый Пользователь">
+                </div>
+                
+                <div class="form-group">
+                    <label for="user-email">Email:</label>
+                    <input type="email" id="user-email" value="test@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="user-role">Роль:</label>
+                    <input type="text" id="user-role" value="user">
+                </div>
+                
+                <button class="button" onclick="testCreateUser()">Создать пользователя</button>
+                <div class="response" id="response-create-user" style="display: none;"></div>
+            </div>
+
+            <!-- Информация о системе -->
+            <div class="endpoint">
+                <h3>
+                    <span class="method">GET</span>
+                    Информация о системе
+                </h3>
+                <div class="url">/api/system/info</div>
+                <button class="button" onclick="testEndpoint('GET', '/api/system/info')">Тестировать</button>
+                <div class="response" id="response-system" style="display: none;"></div>
+            </div>
+
+            <!-- Проверка здоровья -->
+            <div class="endpoint">
+                <h3>
+                    <span class="method">GET</span>
+                    Проверка здоровья API
+                </h3>
+                <div class="url">/api/health</div>
+                <button class="button" onclick="testEndpoint('GET', '/api/health')">Тестировать</button>
+                <div class="response" id="response-health" style="display: none;"></div>
+            </div>
+
+            <!-- Загрузка -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Выполняется запрос...</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Symfony API Test Panel | Версия 1.0.0</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+
+        async function testEndpoint(method, endpoint) {
+            const button = event.target;
+            let responseId;
+            
+            // Определяем правильный ID для каждого эндпоинта
+            if (endpoint === '/') {
+                responseId = 'response-home';
+            } else if (endpoint === '/api/test') {
+                responseId = 'response-test';
+            } else if (endpoint === '/api/users') {
+                responseId = 'response-users';
+            } else if (endpoint === '/api/system/info') {
+                responseId = 'response-system';
+            } else if (endpoint === '/api/health') {
+                responseId = 'response-health';
+            } else {
+                responseId = `response-${endpoint.replace(/\//g, '-').replace(/^-/, '')}`;
+            }
+            
+            const responseDiv = document.getElementById(responseId);
+            
+            if (!responseDiv) {
+                console.error(`Элемент с ID '${responseId}' не найден`);
+                return;
+            }
+            
+            button.disabled = true;
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                const status = response.ok ? 'success' : 'error';
+                
+                responseDiv.innerHTML = `Статус: ${response.status} ${response.statusText}\n\n${JSON.stringify(data, null, 2)}`;
+                responseDiv.className = `response ${status}`;
+                responseDiv.style.display = 'block';
+                
+            } catch (error) {
+                responseDiv.innerHTML = `Ошибка: ${error.message}`;
+                responseDiv.className = 'response error';
+                responseDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                hideLoading();
+            }
+        }
+
+        async function testCreateUser() {
+            const button = event.target;
+            const responseDiv = document.getElementById('response-create-user');
+            
+            const userData = {
+                name: document.getElementById('user-name').value,
+                email: document.getElementById('user-email').value,
+                role: document.getElementById('user-role').value
+            };
+            
+            button.disabled = true;
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                const status = response.ok ? 'success' : 'error';
+                
+                responseDiv.innerHTML = `Статус: ${response.status} ${response.statusText}\n\n${JSON.stringify(data, null, 2)}`;
+                responseDiv.className = `response ${status}`;
+                responseDiv.style.display = 'block';
+                
+            } catch (error) {
+                responseDiv.innerHTML = `Ошибка: ${error.message}`;
+                responseDiv.className = 'response error';
+                responseDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                hideLoading();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Автоматическое тестирование при загрузке страницы
+        window.addEventListener('load', function() {
+            console.log('Symfony API Test Panel загружен');
+            console.log('API Base URL:', API_BASE_URL);
+        });
+    </script>
+</body>
+</html> 
