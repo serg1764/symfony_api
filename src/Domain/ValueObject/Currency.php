@@ -7,7 +7,7 @@ use InvalidArgumentException;
 /**
  * Value Object для представления валюты
  */
-final class Currency implements \JsonSerializable
+class Currency implements \JsonSerializable
 {
     private const SUPPORTED_CURRENCIES = [
         'USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'RUB', 'INR',

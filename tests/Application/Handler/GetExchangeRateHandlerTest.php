@@ -11,18 +11,22 @@ use App\Domain\ValueObject\Currency;
 use App\Domain\ValueObject\ExchangeRate;
 use App\Infrastructure\External\ExchangeRateApiInterface;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 /**
- * Тесты для Application Handler GetExchangeRateHandler
+ * Тесты для обработчика GetExchangeRateHandler
  */
 class GetExchangeRateHandlerTest extends TestCase
 {
-    private ExchangeRateHistoryRepositoryInterface $repository;
-    private ExchangeRateApiInterface $api;
-    private LoggerInterface $logger;
+    private ExchangeRateHistoryRepositoryInterface|MockObject $repository;
+    private ExchangeRateApiInterface|MockObject $api;
+    private LoggerInterface|MockObject $logger;
     private GetExchangeRateHandler $handler;
 
+    /**
+     * Настройка тестового окружения перед каждым тестом
+     */
     protected function setUp(): void
     {
         $this->repository = $this->createMock(ExchangeRateHistoryRepositoryInterface::class);
@@ -32,16 +36,16 @@ class GetExchangeRateHandlerTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет возврат исторического курса при указании даты
      */
-    public function it_returns_historical_rate_when_date_provided(): void
+    public function testItReturnsHistoricalRateWhenDateProvided(): void
     {
         $baseCurrency = new Currency('USD');
         $quoteCurrency = new Currency('EUR');
         $date = new \DateTimeImmutable('2024-08-04 10:00:00');
         $exchangeRate = new ExchangeRate(0.85, $date);
 
-        $history = $this->createMock(ExchangeRateHistory::class);
+        $history = $this->createMock(\App\Domain\Entity\ExchangeRateRecord::class);
         $history->method('getRate')->willReturn($exchangeRate);
 
         $this->repository
@@ -61,16 +65,16 @@ class GetExchangeRateHandlerTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет возврат последнего курса при отсутствии даты
      */
-    public function it_returns_latest_rate_when_no_date_provided(): void
+    public function testItReturnsLatestRateWhenNoDateProvided(): void
     {
         $baseCurrency = new Currency('USD');
         $quoteCurrency = new Currency('EUR');
         $date = new \DateTimeImmutable('2024-08-04 10:00:00');
         $exchangeRate = new ExchangeRate(0.85, $date);
 
-        $history = $this->createMock(ExchangeRateHistory::class);
+        $history = $this->createMock(\App\Domain\Entity\ExchangeRateRecord::class);
         $history->method('getRate')->willReturn($exchangeRate);
 
         $this->repository
@@ -90,9 +94,9 @@ class GetExchangeRateHandlerTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет возврат курса из внешнего API при отсутствии истории
      */
-    public function it_returns_external_api_rate_when_no_history(): void
+    public function testItReturnsExternalApiRateWhenNoHistory(): void
     {
         $baseCurrency = new Currency('USD');
         $quoteCurrency = new Currency('EUR');
@@ -122,16 +126,16 @@ class GetExchangeRateHandlerTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет логирование запросов
      */
-    public function it_logs_request(): void
+    public function testItLogsRequest(): void
     {
         $baseCurrency = new Currency('USD');
         $quoteCurrency = new Currency('EUR');
         $date = new \DateTimeImmutable('2024-08-04 10:00:00');
         $exchangeRate = new ExchangeRate(0.85, $date);
 
-        $history = $this->createMock(ExchangeRateHistory::class);
+        $history = $this->createMock(\App\Domain\Entity\ExchangeRateRecord::class);
         $history->method('getRate')->willReturn($exchangeRate);
 
         $this->repository

@@ -2,12 +2,11 @@
 
 namespace App\Tests\Presentation\Controller;
 
-use App\Application\DTO\ExchangeRateResponse;
-use App\Application\Handler\GetExchangeRateHandler;
-use App\Domain\ValueObject\Currency;
-use App\Domain\ValueObject\ExchangeRate;
+use App\Application\Service\ApiResponseServiceInterface;
+use App\Application\Service\DateService;
+use App\Presentation\Controller\ExchangeRateController;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -16,155 +15,122 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class ExchangeRateControllerTest extends TestCase
 {
-    private GetExchangeRateHandler $handler;
-    private LoggerInterface $logger;
-    private \App\Presentation\Controller\ExchangeRateController $controller;
+    private ApiResponseServiceInterface|MockObject $apiService;
+    private DateService|MockObject $dateService;
+    private ExchangeRateController $controller;
 
+    /**
+     * Настройка тестового окружения перед каждым тестом
+     */
     protected function setUp(): void
     {
-        $this->handler = $this->createMock(GetExchangeRateHandler::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->controller = new \App\Presentation\Controller\ExchangeRateController($this->handler, $this->logger);
+        $this->apiService = $this->createMock(ApiResponseServiceInterface::class);
+        $this->dateService = $this->createMock(DateService::class);
+        $this->controller = new ExchangeRateController($this->apiService, $this->dateService);
     }
 
     /**
-     * @test
+     * Проверяет возврат курса обмена для валидных валют
      */
-    public function it_returns_exchange_rate_for_valid_currencies(): void
+    public function testItReturnsExchangeRateForValidCurrencies(): void
     {
-        $baseCurrency = new Currency('USD');
-        $quoteCurrency = new Currency('EUR');
-        $exchangeRate = new ExchangeRate(0.85);
+        $expectedResponse = new JsonResponse(['success' => true, 'data' => ['rate' => 0.85]]);
         
-        $response = new ExchangeRateResponse('USD', 'EUR', 0.85, $exchangeRate->getTimestamp(), 'historical');
-
-        $this->handler
+        $this->apiService
             ->expects($this->once())
-            ->method('handle')
-            ->willReturn($response);
+            ->method('getExchangeRate')
+            ->with('USD', 'EUR', null)
+            ->willReturn($expectedResponse);
 
         $request = new Request();
         $result = $this->controller->getExchangeRate('USD', 'EUR', $request);
 
-        $this->assertInstanceOf(JsonResponse::class, $result);
-        $this->assertEquals(200, $result->getStatusCode());
-        
-        $data = json_decode($result->getContent(), true);
-        $this->assertTrue($data['success']);
-        $this->assertEquals('USD', $data['data']['base_currency']);
-        $this->assertEquals('EUR', $data['data']['quote_currency']);
-        $this->assertEquals(0.85, $data['data']['rate']);
+        $this->assertSame($expectedResponse, $result);
     }
 
     /**
-     * @test
+     * Проверяет возврат курса обмена с параметром даты
      */
-    public function it_returns_exchange_rate_with_date_parameter(): void
+    public function testItReturnsExchangeRateWithDateParameter(): void
     {
-        $baseCurrency = new Currency('USD');
-        $quoteCurrency = new Currency('EUR');
         $date = new \DateTimeImmutable('2024-08-04 10:00:00');
-        $exchangeRate = new ExchangeRate(0.85, $date);
+        $expectedResponse = new JsonResponse(['success' => true, 'data' => ['rate' => 0.85]]);
         
-        $response = new ExchangeRateResponse('USD', 'EUR', 0.85, $date, 'historical');
-
-        $this->handler
+        $this->dateService
             ->expects($this->once())
-            ->method('handle')
-            ->willReturn($response);
+            ->method('parseDate')
+            ->with('2024-08-04T10:00:00')
+            ->willReturn($date);
+
+        $this->apiService
+            ->expects($this->once())
+            ->method('getExchangeRate')
+            ->with('USD', 'EUR', $date)
+            ->willReturn($expectedResponse);
 
         $request = new Request(['date' => '2024-08-04T10:00:00']);
         $result = $this->controller->getExchangeRate('USD', 'EUR', $request);
 
-        $this->assertInstanceOf(JsonResponse::class, $result);
-        $this->assertEquals(200, $result->getStatusCode());
+        $this->assertSame($expectedResponse, $result);
     }
 
     /**
-     * @test
+     * Проверяет возврат ошибки при неверном формате даты
      */
-    public function it_returns_error_for_invalid_base_currency(): void
+    public function testItReturnsErrorForInvalidDateFormat(): void
     {
-        $this->logger
-            ->expects($this->once())
-            ->method('warning');
-
-        $result = $this->controller->getExchangeRate('INVALID', 'EUR', new Request());
-
-        $this->assertInstanceOf(JsonResponse::class, $result);
-        $this->assertEquals(400, $result->getStatusCode());
+        $expectedResponse = new JsonResponse(['success' => false, 'error' => 'Invalid date'], 400);
         
-        $data = json_decode($result->getContent(), true);
-        $this->assertFalse($data['success']);
-        $this->assertNotNull($data['error']);
-    }
-
-    /**
-     * @test
-     */
-    public function it_returns_error_for_invalid_quote_currency(): void
-    {
-        $this->logger
+        $this->dateService
             ->expects($this->once())
-            ->method('warning');
+            ->method('parseDate')
+            ->with('invalid-date')
+            ->willThrowException(new \Exception('Invalid date format'));
 
-        $result = $this->controller->getExchangeRate('USD', 'INVALID', new Request());
+        $this->apiService
+            ->expects($this->once())
+            ->method('createErrorResponse')
+            ->with('Неверный формат даты. Используйте формат: YYYY-MM-DD или YYYY-MM-DDTHH:MM:SS', 400)
+            ->willReturn($expectedResponse);
 
-        $this->assertInstanceOf(JsonResponse::class, $result);
-        $this->assertEquals(400, $result->getStatusCode());
-        
-        $data = json_decode($result->getContent(), true);
-        $this->assertFalse($data['success']);
-        $this->assertNotNull($data['error']);
+        $request = new Request(['date' => 'invalid-date']);
+        $result = $this->controller->getExchangeRate('USD', 'EUR', $request);
+
+        $this->assertSame($expectedResponse, $result);
     }
 
     /**
-     * @test
+     * Проверяет возврат списка поддерживаемых валют
      */
-    public function it_returns_supported_currencies(): void
+    public function testItReturnsSupportedCurrencies(): void
     {
+        $expectedResponse = new JsonResponse(['success' => true, 'data' => ['currencies' => ['USD', 'EUR']]]);
+        
+        $this->apiService
+            ->expects($this->once())
+            ->method('getSupportedCurrencies')
+            ->willReturn($expectedResponse);
+
         $result = $this->controller->getSupportedCurrencies();
 
-        $this->assertInstanceOf(JsonResponse::class, $result);
-        $this->assertEquals(200, $result->getStatusCode());
-        
-        $data = json_decode($result->getContent(), true);
-        $this->assertTrue($data['success']);
-        $this->assertArrayHasKey('currencies', $data['data']);
-        $this->assertArrayHasKey('total', $data['data']);
-        $this->assertContains('USD', $data['data']['currencies']);
-        $this->assertContains('EUR', $data['data']['currencies']);
+        $this->assertSame($expectedResponse, $result);
     }
 
     /**
-     * @test
+     * Проверяет возврат статистики для валидных валют
      */
-    public function it_returns_statistics_for_valid_currencies(): void
+    public function testItReturnsStatisticsForValidCurrencies(): void
     {
+        $expectedResponse = new JsonResponse(['success' => true, 'data' => ['statistics' => []]]);
+        
+        $this->apiService
+            ->expects($this->once())
+            ->method('getStatistics')
+            ->with('USD', 'EUR')
+            ->willReturn($expectedResponse);
+
         $result = $this->controller->getStatistics('USD', 'EUR');
 
-        $this->assertInstanceOf(JsonResponse::class, $result);
-        $this->assertEquals(200, $result->getStatusCode());
-        
-        $data = json_decode($result->getContent(), true);
-        $this->assertTrue($data['success']);
-        $this->assertEquals('USD', $data['data']['base_currency']);
-        $this->assertEquals('EUR', $data['data']['quote_currency']);
-        $this->assertArrayHasKey('statistics', $data['data']);
-    }
-
-    /**
-     * @test
-     */
-    public function it_returns_error_for_invalid_currencies_in_statistics(): void
-    {
-        $result = $this->controller->getStatistics('INVALID', 'EUR');
-
-        $this->assertInstanceOf(JsonResponse::class, $result);
-        $this->assertEquals(400, $result->getStatusCode());
-        
-        $data = json_decode($result->getContent(), true);
-        $this->assertFalse($data['success']);
-        $this->assertNotNull($data['error']);
+        $this->assertSame($expectedResponse, $result);
     }
 } 

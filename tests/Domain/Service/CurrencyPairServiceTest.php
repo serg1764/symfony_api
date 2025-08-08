@@ -9,6 +9,7 @@ use App\Domain\Service\CurrencyPairService;
 use App\Domain\ValueObject\Currency;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -16,10 +17,13 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  */
 class CurrencyPairServiceTest extends TestCase
 {
-    private CurrencyPairRepositoryInterface $repository;
-    private EventDispatcherInterface $eventDispatcher;
+    private CurrencyPairRepositoryInterface|MockObject $repository;
+    private EventDispatcherInterface|MockObject $eventDispatcher;
     private CurrencyPairService $service;
 
+    /**
+     * Настройка тестового окружения перед каждым тестом
+     */
     protected function setUp(): void
     {
         $this->repository = $this->createMock(CurrencyPairRepositoryInterface::class);
@@ -28,9 +32,9 @@ class CurrencyPairServiceTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет добавление новой валютной пары
      */
-    public function it_adds_new_currency_pair(): void
+    public function testItAddsNewCurrencyPair(): void
     {
         $baseCurrency = new Currency('USD');
         $quoteCurrency = new Currency('EUR');
@@ -58,9 +62,9 @@ class CurrencyPairServiceTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет выброс исключения при существующей паре валют
      */
-    public function it_throws_exception_when_pair_already_exists(): void
+    public function testItThrowsExceptionWhenPairAlreadyExists(): void
     {
         $baseCurrency = new Currency('USD');
         $quoteCurrency = new Currency('EUR');
@@ -78,9 +82,9 @@ class CurrencyPairServiceTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет активацию валютной пары
      */
-    public function it_activates_currency_pair(): void
+    public function testItActivatesCurrencyPair(): void
     {
         $currencyPair = $this->createMock(CurrencyPair::class);
         $currencyPair->expects($this->once())->method('activate');
@@ -102,9 +106,9 @@ class CurrencyPairServiceTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет выброс исключения при активации несуществующей пары
      */
-    public function it_throws_exception_when_activating_nonexistent_pair(): void
+    public function testItThrowsExceptionWhenActivatingNonexistentPair(): void
     {
         $this->repository
             ->expects($this->once())
@@ -119,9 +123,9 @@ class CurrencyPairServiceTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет деактивацию валютной пары
      */
-    public function it_deactivates_currency_pair(): void
+    public function testItDeactivatesCurrencyPair(): void
     {
         $currencyPair = $this->createMock(CurrencyPair::class);
         $currencyPair->expects($this->once())->method('deactivate');
@@ -143,9 +147,9 @@ class CurrencyPairServiceTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет удаление валютной пары
      */
-    public function it_removes_currency_pair(): void
+    public function testItRemovesCurrencyPair(): void
     {
         $currencyPair = $this->createMock(CurrencyPair::class);
 
@@ -164,9 +168,9 @@ class CurrencyPairServiceTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет возврат активных пар валют
      */
-    public function it_returns_active_pairs(): void
+    public function testItReturnsActivePairs(): void
     {
         $expectedPairs = [
             $this->createMock(CurrencyPair::class),
@@ -184,9 +188,9 @@ class CurrencyPairServiceTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет проверку существования пары валют
      */
-    public function it_checks_pair_existence(): void
+    public function testItChecksPairExistence(): void
     {
         $baseCurrency = new Currency('USD');
         $quoteCurrency = new Currency('EUR');

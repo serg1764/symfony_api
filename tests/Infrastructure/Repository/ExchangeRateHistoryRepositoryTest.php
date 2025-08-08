@@ -27,6 +27,9 @@ class ExchangeRateHistoryRepositoryTest extends TestCase
     private QueryBuilder|MockObject $queryBuilder;
     private DbLoggerInterface|MockObject $dbLogger;
 
+    /**
+     * Настройка тестового окружения перед каждым тестом
+     */
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
@@ -35,6 +38,9 @@ class ExchangeRateHistoryRepositoryTest extends TestCase
         $this->repository = new ExchangeRateHistoryRepository($this->entityManager, $this->dbLogger);
     }
 
+    /**
+     * Проверяет поиск последнего курса обмена для валютной пары
+     */
     public function testItFindsLatestRate(): void
     {
         $baseCurrency = new Currency('USD');
@@ -83,6 +89,9 @@ class ExchangeRateHistoryRepositoryTest extends TestCase
         $this->assertSame($expectedEntity, $result);
     }
 
+    /**
+     * Проверяет поиск курса обмена на определенную дату
+     */
     public function testItFindsRateAtDate(): void
     {
         $baseCurrency = new Currency('EUR');
@@ -146,6 +155,9 @@ class ExchangeRateHistoryRepositoryTest extends TestCase
         $this->assertSame($expectedEntity, $result);
     }
 
+    /**
+     * Проверяет сохранение записи курса обмена в базу данных
+     */
     public function testItSavesExchangeRateRecord(): void
     {
         $record = new USDEUR(new ExchangeRate(1.25));
@@ -160,6 +172,9 @@ class ExchangeRateHistoryRepositoryTest extends TestCase
         $this->repository->save($record);
     }
 
+    /**
+     * Проверяет выброс исключения для неподдерживаемой валютной пары
+     */
     public function testItThrowsExceptionForUnsupportedCurrencyPair(): void
     {
         $this->expectException(\InvalidArgumentException::class);

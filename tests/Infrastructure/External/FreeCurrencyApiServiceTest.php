@@ -19,6 +19,9 @@ class FreeCurrencyApiServiceTest extends TestCase
     private HttpClientInterface|MockObject $httpClient;
     private FreeCurrencyApiService $service;
 
+    /**
+     * Настройка тестового окружения перед каждым тестом
+     */
     protected function setUp(): void
     {
         $this->httpClient = $this->getMockBuilder(HttpClientInterface::class)
@@ -33,6 +36,9 @@ class FreeCurrencyApiServiceTest extends TestCase
         $this->service = new FreeCurrencyApiService($this->httpClient, 'test-api-key', $dbLogger);
     }
 
+    /**
+     * Проверяет успешное получение курса обмена из внешнего API
+     */
     public function testItReturnsExchangeRateFromApi(): void
     {
         $response = $this->createMock(ResponseInterface::class);
@@ -59,6 +65,9 @@ class FreeCurrencyApiServiceTest extends TestCase
         $this->assertEquals(0.85, $exchangeRate->getRate());
     }
 
+    /**
+     * Проверяет выброс исключения при отсутствии API ключа
+     */
     public function testItThrowsExceptionWhenApiKeyMissing(): void
     {
         $dbLogger = $this->getMockBuilder(\App\Service\DbLoggerInterface::class)
@@ -76,6 +85,9 @@ class FreeCurrencyApiServiceTest extends TestCase
         $service->getExchangeRate($baseCurrency, $quoteCurrency);
     }
 
+    /**
+     * Проверяет выброс исключения при сбое API
+     */
     public function testItThrowsExceptionWhenApiFails(): void
     {
         $this->httpClient
@@ -92,6 +104,9 @@ class FreeCurrencyApiServiceTest extends TestCase
         $this->service->getExchangeRate($baseCurrency, $quoteCurrency);
     }
 
+    /**
+     * Проверяет выброс исключения при неверном ответе от API
+     */
     public function testItThrowsExceptionForInvalidApiResponse(): void
     {
         $response = $this->createMock(ResponseInterface::class);
@@ -117,6 +132,9 @@ class FreeCurrencyApiServiceTest extends TestCase
         $this->service->getExchangeRate($baseCurrency, $quoteCurrency);
     }
 
+    /**
+     * Проверяет возврат false при отсутствии API ключа для проверки доступности
+     */
     public function testItReturnsFalseWhenApiKeyMissingForAvailabilityCheck(): void
     {
         $dbLogger = $this->getMockBuilder(\App\Service\DbLoggerInterface::class)
@@ -128,6 +146,9 @@ class FreeCurrencyApiServiceTest extends TestCase
         $this->assertFalse($service->isAvailable());
     }
 
+    /**
+     * Проверяет возврат true когда API доступен
+     */
     public function testItReturnsTrueWhenApiIsAvailable(): void
     {
         $response = $this->createMock(ResponseInterface::class);
@@ -141,6 +162,9 @@ class FreeCurrencyApiServiceTest extends TestCase
         $this->assertTrue($this->service->isAvailable());
     }
 
+    /**
+     * Проверяет возврат false когда API недоступен
+     */
     public function testItReturnsFalseWhenApiIsUnavailable(): void
     {
         $this->httpClient

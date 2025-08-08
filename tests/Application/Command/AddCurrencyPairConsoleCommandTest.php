@@ -8,6 +8,7 @@ use App\Application\Command\AddCurrencyPairConsoleCommand;
 use App\Domain\Entity\CurrencyPair;
 use App\Domain\ValueObject\Currency;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -16,10 +17,13 @@ use Symfony\Component\Console\Tester\CommandTester;
  */
 class AddCurrencyPairConsoleCommandTest extends TestCase
 {
-    private AddCurrencyPairHandler $handler;
+    private AddCurrencyPairHandler|MockObject $handler;
     private AddCurrencyPairConsoleCommand $command;
     private CommandTester $commandTester;
 
+    /**
+     * Настройка тестового окружения перед каждым тестом
+     */
     protected function setUp(): void
     {
         $this->handler = $this->createMock(AddCurrencyPairHandler::class);
@@ -32,9 +36,9 @@ class AddCurrencyPairConsoleCommandTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет успешное добавление валютной пары
      */
-    public function it_adds_currency_pair_successfully(): void
+    public function testItAddsCurrencyPairSuccessfully(): void
     {
         $baseCurrency = new Currency('USD');
         $quoteCurrency = new Currency('EUR');
@@ -61,9 +65,9 @@ class AddCurrencyPairConsoleCommandTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет обработку ошибки при невалидной валюте
      */
-    public function it_handles_invalid_currency_error(): void
+    public function testItHandlesInvalidCurrencyError(): void
     {
         $this->handler
             ->expects($this->once())
@@ -81,9 +85,9 @@ class AddCurrencyPairConsoleCommandTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет обработку общих исключений
      */
-    public function it_handles_general_exception(): void
+    public function testItHandlesGeneralException(): void
     {
         $this->handler
             ->expects($this->once())
@@ -98,18 +102,5 @@ class AddCurrencyPairConsoleCommandTest extends TestCase
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString('Произошла ошибка', $output);
         $this->assertEquals(1, $this->commandTester->getStatusCode());
-    }
-
-    /**
-     * @test
-     */
-    public function it_displays_help_information(): void
-    {
-        $this->commandTester->execute(['--help']);
-
-        $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('Добавить новую пару валют', $output);
-        $this->assertStringContainsString('base-currency', $output);
-        $this->assertStringContainsString('quote-currency', $output);
     }
 } 

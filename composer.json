@@ -16,7 +16,8 @@
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "symfony/amqp-messenger": "^7.3",
         "symfony/monolog-bundle": "^3.10",
-        "symfony/doctrine-messenger": "^7.3"
+        "symfony/doctrine-messenger": "^7.3",
+        "symfony/twig-bundle": "^7.3"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.3",

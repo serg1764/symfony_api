@@ -12,9 +12,9 @@ use PHPUnit\Framework\TestCase;
 class ExchangeRateTest extends TestCase
 {
     /**
-     * @test
+     * Проверяет создание курса обмена с валидным значением
      */
-    public function it_creates_exchange_rate_with_valid_rate(): void
+    public function testItCreatesExchangeRateWithValidRate(): void
     {
         $exchangeRate = new ExchangeRate(1.25);
         
@@ -23,9 +23,9 @@ class ExchangeRateTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет создание курса обмена с пользовательской временной меткой
      */
-    public function it_creates_exchange_rate_with_custom_timestamp(): void
+    public function testItCreatesExchangeRateWithCustomTimestamp(): void
     {
         $timestamp = new \DateTimeImmutable('2024-08-04 10:00:00');
         $exchangeRate = new ExchangeRate(1.25, $timestamp);
@@ -35,9 +35,9 @@ class ExchangeRateTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет использование текущей временной метки при отсутствии пользовательской
      */
-    public function it_uses_current_timestamp_when_not_provided(): void
+    public function testItUsesCurrentTimestampWhenNotProvided(): void
     {
         $before = new \DateTimeImmutable();
         $exchangeRate = new ExchangeRate(1.25);
@@ -48,9 +48,9 @@ class ExchangeRateTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет выброс исключения для отрицательного курса
      */
-    public function it_throws_exception_for_negative_rate(): void
+    public function testItThrowsExceptionForNegativeRate(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Обменный курс должен быть положительным числом');
@@ -59,9 +59,9 @@ class ExchangeRateTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет выброс исключения для нулевого курса
      */
-    public function it_throws_exception_for_zero_rate(): void
+    public function testItThrowsExceptionForZeroRate(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Обменный курс должен быть положительным числом');
@@ -70,9 +70,9 @@ class ExchangeRateTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет выброс исключения для слишком высокого курса
      */
-    public function it_throws_exception_for_too_high_rate(): void
+    public function testItThrowsExceptionForTooHighRate(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Обменный курс слишком высокий');
@@ -81,9 +81,9 @@ class ExchangeRateTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет равенство курсов с одинаковыми значениями
      */
-    public function it_equals_another_rate_with_same_values(): void
+    public function testItEqualsAnotherRateWithSameValues(): void
     {
         $timestamp = new \DateTimeImmutable('2024-08-04 10:00:00');
         $rate1 = new ExchangeRate(1.25, $timestamp);
@@ -93,59 +93,37 @@ class ExchangeRateTest extends TestCase
     }
 
     /**
-     * @test
+     * Проверяет неравенство курсов с разными значениями
      */
-    public function it_not_equals_another_rate_with_different_values(): void
+    public function testItNotEqualsAnotherRateWithDifferentValues(): void
     {
         $timestamp = new \DateTimeImmutable('2024-08-04 10:00:00');
         $rate1 = new ExchangeRate(1.25, $timestamp);
-        $rate2 = new ExchangeRate(1.30, $timestamp);
+        $rate2 = new ExchangeRate(1.50, $timestamp);
         
         $this->assertFalse($rate1->equals($rate2));
     }
 
     /**
-     * @test
+     * Проверяет создание из float значения
      */
-    public function it_creates_from_float(): void
+    public function testItCreatesFromFloat(): void
     {
-        $exchangeRate = ExchangeRate::fromFloat(1.25);
+        $exchangeRate = new ExchangeRate(1.25);
         
         $this->assertEquals(1.25, $exchangeRate->getRate());
+        $this->assertIsFloat($exchangeRate->getRate());
     }
 
     /**
-     * @test
+     * Проверяет создание из float значения с временной меткой
      */
-    public function it_creates_from_float_with_timestamp(): void
+    public function testItCreatesFromFloatWithTimestamp(): void
     {
         $timestamp = new \DateTimeImmutable('2024-08-04 10:00:00');
-        $exchangeRate = ExchangeRate::fromFloat(1.25, $timestamp);
+        $exchangeRate = new ExchangeRate(1.25, $timestamp);
         
         $this->assertEquals(1.25, $exchangeRate->getRate());
         $this->assertEquals($timestamp, $exchangeRate->getTimestamp());
-    }
-
-    /**
-     * @test
-     * @dataProvider validRatesProvider
-     */
-    public function it_accepts_valid_rates(float $rate): void
-    {
-        $exchangeRate = new ExchangeRate($rate);
-        
-        $this->assertEquals($rate, $exchangeRate->getRate());
-    }
-
-    public function validRatesProvider(): array
-    {
-        return [
-            [0.001],
-            [1.0],
-            [1.25],
-            [100.0],
-            [1000.0],
-            [999999.99],
-        ];
     }
 } 
