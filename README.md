@@ -54,8 +54,7 @@
 - **`exchange_rate_eur_usd`** - история курсов EUR/USD
 - **`currency_pairs`** - список отслеживаемых пар
 - **`doctrine_migration_versions`** - версии миграций Doctrine
-- **`messenger_messages`** - сообщения в очередях (для Doctrine транспорта)
-- **`messenger_failed_messages`** - неудачные сообщения для анализа и восстановления
+- **`messenger_messages`** - неудачные сообщения для анализа и восстановления
 
 **Примечание:** Очереди сообщений (`async_fetch` и `async_save`) используют RabbitMQ, а не базу данных.
 
@@ -100,7 +99,7 @@ src/
 ### 1. Клонирование и настройка
 
 ```bash
-git clone <repository>
+git clone git@github.com:serg1764/symfony_api.git
 cd symfony_api
 ```
 
@@ -317,7 +316,6 @@ curl http://localhost:8080/api/exchange-rates/USD/EUR/statistics
 - **Обменные курсы** - получение текущих и исторических курсов валют
 - **Валюты** - список поддерживаемых валют
 - **Статистика** - статистическая информация по курсам
-- **Тестовые эндпоинты** - тестирование базовых API эндпоинтов
 
 #### Возможности:
 - ✅ Интерактивные формы для ввода параметров
@@ -375,13 +373,6 @@ php bin/phpunit --testsuite="API Tests"
 php bin/phpunit --coverage-html coverage/
 ```
 
-### Автоматическое тестирование API
-
-```bash
-# Запуск тестового скрипта
-php scripts/test_api.php
-```
-
 ### Примеры тестов
 
 #### Value Object тесты
@@ -428,7 +419,7 @@ public function it_adds_currency_pair_successfully(): void
 
 ### Надежность очередей
 - **Повторные попытки**: до 3 раз с задержками 1с, 2с, 4с
-- **Неудачные сообщения**: автоматически сохраняются в `messenger_failed_messages`
+- **Неудачные сообщения**: автоматически сохраняются в `messenger_messages`
 - **Мониторинг**: `php bin/console messenger:failed:show`
 - **Восстановление**: `php bin/console messenger:failed:retry`
 
@@ -482,11 +473,7 @@ public function it_adds_currency_pair_successfully(): void
 
 ## Дополнительные файлы
 
-- **QUICK_START.md** - Быстрый старт проекта
-- **API_TESTING.md** - Подробное руководство по тестированию API
-- **TESTING.md** - Документация по тестированию
-- **scripts/test_api.php** - Автоматический тестовый скрипт
-- **public/test.html** - Веб-интерфейс для тестирования
+- **TESTS_OVERVIEW.md** - Документация по тестированию
 
 ## Лицензия
 
