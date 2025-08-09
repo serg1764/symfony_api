@@ -346,6 +346,8 @@ curl http://localhost:8080/api/exchange-rates/USD/EUR/statistics
 - **Каждую минуту**: Обновление обменных курсов
 - **Ежедневно в 2:00**: Очистка старых записей (старше 30 дней) - закомментировано
 
+**Примечание:** !!!ВНИМАНИЕ!!! файл `docker/cron/cronfile` должен быть сохранён в Unix-формате строк LF (без CRLF).
+
 ### Поддерживаемые валюты
 
 USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, RUB, INR, BRL, MXN, KRW, SGD, HKD, NZD, SEK, NOK, DKK, PLN
