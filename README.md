@@ -361,16 +361,16 @@ USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, RUB, INR, BRL, MXN, KRW, SGD, HKD, NZD, 
 
 ```bash
 # Все тесты
-php bin/phpunit
+php vendor/bin/phpunit
 
 # Только Unit тесты
-php bin/phpunit --testsuite="Unit Tests"
+php vendor/bin/phpunit --testsuite="Unit Tests"
 
 # Только API тесты
-php bin/phpunit --testsuite="API Tests"
+php vendor/bin/phpunit --testsuite="API Tests"
 
 # С покрытием кода
-php bin/phpunit --coverage-html coverage/
+php vendor/bin/phpunit --coverage-html coverage/
 ```
 
 ### Примеры тестов

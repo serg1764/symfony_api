@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Exchange Rate API - Веб-интерфейс</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .endpoint {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .endpoint h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .method {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .method.get { background: #28a745; }
+        .method.post { background: #007bff; }
+        .method.put { background: #ffc107; color: #212529; }
+        .method.delete { background: #dc3545; }
+
+        .url {
+            background: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            color: #495057;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+
+        .description {
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .button:hover {
+            background: #5a6fd8;
+        }
+
+        .button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .response {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .currency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .currency-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .currency-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .currency-card.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💱 Currency Exchange Rate API</h1>
+            <p>Веб-интерфейс для тестирования API обменных курсов валют</p>
+        </div>
+
+        <div class="content">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('exchange-rates')">Обменные курсы</button>
+                <button class="tab" onclick="showTab('currencies')">Валюты</button>
+                <button class="tab" onclick="showTab('statistics')">Статистика</button>
+            </div>
+
+            <!-- Обменные курсы -->
+            <div id="exchange-rates" class="tab-content active">
+                <div class="endpoint">
+                    <h3>
+                        <span class="method get">GET</span>
+                        Получить обменный курс
+                    </h3>
+                    <div class="url">/api/exchange-rates/{baseCurrency}/{quoteCurrency}?date={date}</div>
+                    <div class="description">Получить текущий или исторический курс валют для указанной пары</div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="base-currency">Базовая валюта:</label>
+                            <select id="base-currency">
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="RUB">RUB</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="quote-currency">Котируемая валюта:</label>
+                            <select id="quote-currency">
+                                <option value="EUR">EUR</option>
+                                <option value="USD">USD</option>
+                                <option value="GBP">GBP</option>
+                                <option value="RUB">RUB</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="exchange-date">Дата (опционально):</label>
+                            <input type="date" id="exchange-date" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="form-group">
+                            <label for="exchange-time">Время (опционально):</label>
+                            <input type="time" id="exchange-time" step="1">
+                        </div>
+                    </div>
+                    
+                    <button class="button" onclick="getExchangeRate()">Получить курс</button>
+                    <div class="response" id="response-exchange-rate" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Валюты -->
+            <div id="currencies" class="tab-content">
+                <div class="endpoint">
+                    <h3>
+                        <span class="method get">GET</span>
+                        Список поддерживаемых валют
+                    </h3>
+                    <div class="url">/api/exchange-rates/currencies</div>
+                    <div class="description">Получить список всех поддерживаемых валют</div>
+                    
+                    <button class="button" onclick="getSupportedCurrencies()">Получить валюты</button>
+                    <div class="response" id="response-currencies" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Статистика -->
+            <div id="statistics" class="tab-content">
+                <div class="endpoint">
+                    <h3>
+                        <span class="method get">GET</span>
+                        Статистика по курсам
+                    </h3>
+                    <div class="url">/api/exchange-rates/{baseCurrency}/{quoteCurrency}/statistics</div>
+                    <div class="description">Получить статистическую информацию по курсам валют</div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="stat-base-currency">Базовая валюта:</label>
+                            <select id="stat-base-currency">
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="RUB">RUB</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="stat-quote-currency">Котируемая валюта:</label>
+                            <select id="stat-quote-currency">
+                                <option value="EUR">EUR</option>
+                                <option value="USD">USD</option>
+                                <option value="GBP">GBP</option>
+                                <option value="RUB">RUB</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="button" onclick="getStatistics()">Получить статистику</button>
+                    <div class="response" id="response-statistics" style="display: none;"></div>
+                </div>
+            </div>
+
+
+
+            <!-- Загрузка -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Выполняется запрос...</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Currency Exchange Rate API | Веб-интерфейс v2.0.0</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+
+        function showTab(tabName) {
+            // Скрываем все вкладки
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Убираем активный класс у всех кнопок
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Показываем нужную вкладку
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function getExchangeRate() {
+            const baseCurrency = document.getElementById('base-currency').value;
+            const quoteCurrency = document.getElementById('quote-currency').value;
+            const date = document.getElementById('exchange-date').value;
+            const time = document.getElementById('exchange-time').value;
+            
+            const url = `/api/exchange-rates/${baseCurrency}/${quoteCurrency}`;
+            let fullUrl = url;
+            
+            if (date) {
+                const datetime = time 
+                    ? `${date}T${time}` 
+                    : date;
+                fullUrl = `${url}?date=${datetime}`;
+            }
+            
+            await makeRequest('GET', fullUrl, 'response-exchange-rate');
+        }
+
+        async function getSupportedCurrencies() {
+            await makeRequest('GET', '/api/exchange-rates/currencies', 'response-currencies');
+        }
+
+        async function getStatistics() {
+            const baseCurrency = document.getElementById('stat-base-currency').value;
+            const quoteCurrency = document.getElementById('stat-quote-currency').value;
+            
+            const url = `/api/exchange-rates/${baseCurrency}/${quoteCurrency}/statistics`;
+            await makeRequest('GET', url, 'response-statistics');
+        }
+
+        async function testEndpoint(method, endpoint) {
+            let responseId;
+            
+            // Определяем правильный ID для каждого эндпоинта
+            if (endpoint === '/') {
+                responseId = 'response-home';
+            } else if (endpoint === '/api/test') {
+                responseId = 'response-test';
+            } else if (endpoint === '/api/users') {
+                responseId = 'response-users';
+            } else if (endpoint === '/api/system/info') {
+                responseId = 'response-system';
+            } else if (endpoint === '/api/health') {
+                responseId = 'response-health';
+            } else {
+                responseId = `response-${endpoint.replace(/\//g, '-').replace(/^-/, '')}`;
+            }
+            
+            await makeRequest(method, endpoint, responseId);
+        }
+
+        async function testCreateUser() {
+            const userData = {
+                name: document.getElementById('user-name').value,
+                email: document.getElementById('user-email').value,
+                role: document.getElementById('user-role').value
+            };
+            
+            await makeRequest('POST', '/api/users', 'response-create-user', userData);
+        }
+
+        async function makeRequest(method, endpoint, responseId, data = null) {
+            const button = event.target;
+            const responseDiv = document.getElementById(responseId);
+            
+            if (!responseDiv) {
+                console.error(`Элемент с ID '${responseId}' не найден`);
+                return;
+            }
+            
+            button.disabled = true;
+            showLoading();
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                const responseData = await response.json();
+                const status = response.ok ? 'success' : 'error';
+                
+                responseDiv.innerHTML = `Статус: ${response.status} ${response.statusText}\n\n${JSON.stringify(responseData, null, 2)}`;
+                responseDiv.className = `response ${status}`;
+                responseDiv.style.display = 'block';
+                
+            } catch (error) {
+                responseDiv.innerHTML = `Ошибка: ${error.message}`;
+                responseDiv.className = 'response error';
+                responseDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                hideLoading();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Автоматическое тестирование при загрузке страницы
+        window.addEventListener('load', function() {
+            console.log('Currency Exchange Rate API Web Interface загружен');
+            console.log('API Base URL:', API_BASE_URL);
+        });
+    </script>
+</body>
+</html>
