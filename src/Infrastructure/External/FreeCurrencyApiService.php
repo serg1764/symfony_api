@@ -64,6 +64,28 @@ class FreeCurrencyApiService implements ExchangeRateApiInterface
             
             return new ExchangeRate($rate);
         } catch (\Exception $e) {
+            // Проверяем, является ли это ошибка 429 (превышение лимита запросов)
+            if (str_contains($e->getMessage(), 'HTTP/2 429') || 
+                str_contains($e->getMessage(), '429') ||
+                str_contains($e->getMessage(), 'You used all your monthly requests')) {
+                
+                // Логируем через обычный метод log (он работает вне транзакции)
+                $this->dbLogger?->log('api', 'warning', 'Превышен лимит запросов к API (429)', [
+                    'base_currency' => $baseCurrency->getCode(),
+                    'quote_currency' => $quoteCurrency->getCode(),
+                    'error' => $e->getMessage(),
+                    'action' => 'rate_limit_exceeded'
+                ]);
+
+                throw new RuntimeException(
+                    sprintf('Превышен лимит запросов к API для %s/%s', 
+                        $baseCurrency->getCode(), 
+                        $quoteCurrency->getCode()
+                    ),
+                    429
+                );
+            }
+
             $this->dbLogger?->log('api', 'error', 'Ошибка при получении курса валют', [
                 'base_currency' => $baseCurrency->getCode(),
                 'quote_currency' => $quoteCurrency->getCode(),

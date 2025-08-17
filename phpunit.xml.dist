@@ -17,6 +17,7 @@
         <testsuite name="Unit Tests">
             <directory>tests/Domain/ValueObject</directory>
             <directory>tests/Domain/Service</directory>
+            <directory>tests/Domain/Factory</directory>
             <directory>tests/Application/Handler</directory>
         </testsuite>
         
@@ -28,6 +29,7 @@
         
         <testsuite name="API Tests">
             <directory>tests/Presentation/Controller</directory>
+            <directory>tests/Controller</directory>
         </testsuite>
         
         <testsuite name="Command Tests">
@@ -45,7 +47,6 @@
         
         <exclude>
             <directory suffix=".php">src/Kernel.php</directory>
-            <directory suffix=".php">src/Controller/TestController.php</directory>
         </exclude>
     </coverage>
 

@@ -2,125 +2,93 @@
 
 namespace App\Tests\Controller;
 
-use App\Controller\TestController;
+use App\Controller\HomeController;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Тесты для TestController
+ * Тесты для HomeController
  * 
  * Запускаем такой командой:
  * php ./vendor/bin/phpunit --testdox tests/Controller/TestControllerTest.php
  * 
  * @package App\Tests\Controller
- * @author Your Name
- * @since 1.0.0
  */
-
 class TestControllerTest extends TestCase
 {
-    private TestController $controller;
+    private HomeController $controller;
 
     protected function setUp(): void
     {
-        $this->controller = new TestController();
+        $this->controller = new HomeController();
     }
 
     /**
      * Тест главной страницы API
-     * 
-     * Проверяет, что главная страница возвращает корректный JSON ответ
-     * с правильной структурой данных.
-     * 
-     * @return void
      */
-    public function testHomePage(): void
+    public function testHomePageReturnsValidJson(): void
     {
-        $response = $this->controller->home();
+        $response = $this->controller->index();
         
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertEquals(200, $response->getStatusCode());
         
         $data = json_decode($response->getContent(), true);
         $this->assertEquals('success', $data['status']);
-        $this->assertEquals('Добро пожаловать в Symfony API!', $data['message']);
+        $this->assertStringContainsString('Currency Exchange Rate API', $data['message']);
         $this->assertArrayHasKey('data', $data);
-        $this->assertArrayHasKey('error', $data);
-        $this->assertEquals('', $data['error']);
+        $this->assertArrayHasKey('timestamp', $data);
     }
 
     /**
-     * Тест тестового эндпоинта
-     * 
-     * Проверяет работу тестового эндпоинта /api/test
-     * 
-     * @return void
+     * Тест структуры данных ответа
      */
-    public function testTestEndpoint(): void
+    public function testResponseStructure(): void
     {
-        $response = $this->controller->test();
-        
-        $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertEquals(200, $response->getStatusCode());
+        $response = $this->controller->index();
         
         $data = json_decode($response->getContent(), true);
-        $this->assertEquals('success', $data['status']);
-        $this->assertEquals('Тестовый эндпоинт работает!', $data['message']);
+        $this->assertArrayHasKey('message', $data);
+        $this->assertArrayHasKey('status', $data);
         $this->assertArrayHasKey('data', $data);
-        $this->assertArrayHasKey('error', $data);
-        $this->assertEquals('', $data['error']);
+        $this->assertArrayHasKey('timestamp', $data);
     }
 
-    public function testGetUsers(): void
+    /**
+     * Тест версии API
+     */
+    public function testApiVersion(): void
     {
-        $response = $this->controller->getUsers();
-        
-        $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertEquals(200, $response->getStatusCode());
+        $response = $this->controller->index();
         
         $data = json_decode($response->getContent(), true);
-        $this->assertEquals('success', $data['status']);
-        $this->assertArrayHasKey('data', $data);
-        $this->assertArrayHasKey('users', $data['data']);
-        $this->assertArrayHasKey('total', $data['data']);
-        $this->assertEquals(3, $data['data']['total']);
+        $this->assertEquals('1.0.0', $data['data']['version']);
     }
 
-    public function testCreateUser(): void
+    /**
+     * Тест эндпоинтов API
+     */
+    public function testApiEndpoints(): void
     {
-        $userData = [
-            'name' => 'Тестовый Пользователь',
-            'email' => 'test@example.com',
-            'role' => 'user'
-        ];
-
-        // Создаем мок Request объекта
-        $request = $this->createMock(Request::class);
-        $request->method('getContent')
-                ->willReturn(json_encode($userData));
-
-        $response = $this->controller->createUser($request);
-        
-        $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertEquals(201, $response->getStatusCode());
+        $response = $this->controller->index();
         
         $data = json_decode($response->getContent(), true);
-        $this->assertEquals('success', $data['status']);
-        $this->assertEquals('Пользователь успешно создан', $data['message']);
-        $this->assertArrayHasKey('user', $data['data']);
+        $endpoints = $data['data']['endpoints'];
+        
+        $this->assertArrayHasKey('/api/exchange-rates/{baseCurrency}/{quoteCurrency}', $endpoints);
+        $this->assertArrayHasKey('/api/exchange-rates/currencies', $endpoints);
+        $this->assertArrayHasKey('/api/exchange-rates/{baseCurrency}/{quoteCurrency}/statistics', $endpoints);
     }
 
-    public function testHealthCheck(): void
+    /**
+     * Тест временной метки
+     */
+    public function testTimestamp(): void
     {
-        $response = $this->controller->health();
-        
-        $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertEquals(200, $response->getStatusCode());
+        $response = $this->controller->index();
         
         $data = json_decode($response->getContent(), true);
-        $this->assertEquals('success', $data['status']);
-        $this->assertEquals('healthy', $data['data']['health_status']);
-        $this->assertArrayHasKey('timestamp', $data['data']);
+        $this->assertArrayHasKey('timestamp', $data);
+        $this->assertNotEmpty($data['timestamp']);
     }
-} 
+}

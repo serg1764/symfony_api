@@ -19,13 +19,21 @@ class DbLogger implements DbLoggerInterface
         $sql = 'INSERT INTO log (channel, level, message, context, created_at) VALUES (?, ?, ?, ?, ?)';
         
         try {
-            $this->connection->executeStatement($sql, [
-                $channel,
-                $level,
-                $message,
-                json_encode($context, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
-                (new \DateTime())->format('Y-m-d H:i:s'),
-            ]);
+            // Создаем отдельное соединение для логирования
+            $params = $this->connection->getParams();
+            $driverManager = \Doctrine\DBAL\DriverManager::getConnection($params);
+            
+            $driverManager->transactional(function ($conn) use ($sql, $channel, $level, $message, $context) {
+                $conn->executeStatement($sql, [
+                    $channel,
+                    $level,
+                    $message,
+                    json_encode($context, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                    (new \DateTime())->format('Y-m-d H:i:s'),
+                ]);
+            });
+            
+            $driverManager->close();
         } catch (\Throwable $e) {
             // fallback лог в stderr и во временный файл
             error_log('DbLogger error: ' . $e->getMessage());

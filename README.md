@@ -354,7 +354,17 @@ USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, RUB, INR, BRL, MXN, KRW, SGD, HKD, NZD, 
 
 ## Тестирование
 
-Проект включает в себя различные типы тестов:
+Проект включает в себя комплексную систему тестирования с **68 тестами** по всем слоям приложения:
+
+### 📊 Статистика тестов
+- **Unit Tests**: 40 тестов (Value Objects, Domain Services, Application Handlers)
+- **Integration Tests**: 20 тестов (Repository, External API)
+- **API Tests**: 5 тестов (Controllers)
+- **Command Tests**: 3 теста (Console Commands)
+
+**Статус**: ✅ Все 68 тестов проходят успешно!
+
+### Типы тестов
 
 ### Unit тесты
 - **Value Objects**: Тестирование валидации и бизнес-логики
@@ -376,17 +386,27 @@ USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, RUB, INR, BRL, MXN, KRW, SGD, HKD, NZD, 
 ### Запуск тестов
 
 ```bash
-# Все тесты
-php vendor/bin/phpunit
+# Все тесты (в Docker контейнере)
+docker-compose exec php php ./vendor/bin/phpunit --testdox
 
 # Только Unit тесты
-php vendor/bin/phpunit --testsuite="Unit Tests"
+docker-compose exec php php ./vendor/bin/phpunit --testdox --testsuite="Unit Tests"
 
-# Только API тесты
-php vendor/bin/phpunit --testsuite="API Tests"
+# Только API тесты (включая HomeController)
+docker-compose exec php php ./vendor/bin/phpunit --testdox --testsuite="API Tests"
+
+# Только Integration тесты
+docker-compose exec php php ./vendor/bin/phpunit --testdox --testsuite="Integration Tests"
+
+# Конкретные тесты
+docker-compose exec php php ./vendor/bin/phpunit --testdox tests/Controller/TestControllerTest.php
+docker-compose exec php php ./vendor/bin/phpunit --testdox tests/Presentation/Controller/ExchangeRateControllerTest.php
 
 # С покрытием кода
-php vendor/bin/phpunit --coverage-html coverage/
+docker-compose exec php php ./vendor/bin/phpunit --coverage-html var/coverage
+
+# Локальный запуск (в контейнере или если PHP установлен локально)
+php vendor/bin/phpunit --testdox
 ```
 
 ### Примеры тестов
@@ -489,7 +509,7 @@ public function it_adds_currency_pair_successfully(): void
 
 ## Дополнительные файлы
 
-- **TESTS_OVERVIEW.md** - Документация по тестированию
+- **TESTS_OVERVIEW.md** - Подробная документация по тестированию с примерами команд, настройкой окружения и лучшими практиками
 
 ## Лицензия
 

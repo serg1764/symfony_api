@@ -51,7 +51,7 @@ class CurrencyPairService
         $currencyPair = $this->currencyPairRepository->findById($id);
         
         if (!$currencyPair) {
-            throw new InvalidArgumentException('Пара валют не найдена');
+            throw new InvalidArgumentException('Пара валют не найдена!!! - 888 - !!!');
         }
         
         $currencyPair->activate();
