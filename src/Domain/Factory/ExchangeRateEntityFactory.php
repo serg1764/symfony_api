@@ -8,6 +8,8 @@ use App\Domain\Entity\ExchangeRate\EURUSD;
 use App\Domain\Entity\ExchangeRate\USDEUR;
 use App\Domain\Entity\ExchangeRate\USDGBP;
 use App\Domain\Entity\ExchangeRate\GBPUSD;
+use App\Domain\Entity\ExchangeRate\USDRUB;
+use App\Domain\Entity\ExchangeRate\RUBUSD;
 use App\Domain\Entity\ExchangeRateRecord;
 use App\Domain\ValueObject\Currency;
 use App\Domain\ValueObject\ExchangeRate;
@@ -22,6 +24,8 @@ class ExchangeRateEntityFactory
         'EURUSD' => EURUSD::class,
         'USDGBP' => USDGBP::class,
         'GBPUSD' => GBPUSD::class,
+        'USDRUB' => USDRUB::class,
+        'RUBUSD' => RUBUSD::class,
         // Добавляйте новые пары здесь
     ];
 

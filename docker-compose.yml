@@ -84,7 +84,8 @@ services:
       - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/exchange?serverVersion=16&charset=utf8
       - MESSENGER_TRANSPORT_DSN_FETCH=amqp://guest:guest@rabbitmq:5672/%2f/fetch
       - MESSENGER_TRANSPORT_DSN_SAVE=amqp://guest:guest@rabbitmq:5672/%2f/save
-      - FREECURRENCY_API_KEY=fca_live_39Qslt9C94E5nH6v45i5zaUWtqb5qPGepMitE9T4
+      #- FREECURRENCY_API_KEY=fca_live_39Qslt9C94E5nH6v45i5zaUWtqb5qPGepMitE9T4
+      - FREECURRENCY_API_KEY=fca_live_SOWNy9Sv0n9BP9ExI784mXXd8SFSIo96kks6Cexk
     networks:
       - app-network
 
@@ -153,7 +154,8 @@ services:
       - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/exchange?serverVersion=16&charset=utf8
       - MESSENGER_TRANSPORT_DSN_FETCH=amqp://guest:guest@rabbitmq:5672/%2f/fetch
       - MESSENGER_TRANSPORT_DSN_SAVE=amqp://guest:guest@rabbitmq:5672/%2f/save
-      - FREECURRENCY_API_KEY=fca_live_39Qslt9C94E5nH6v45i5zaUWtqb5qPGepMitE9T4
+      #- FREECURRENCY_API_KEY=fca_live_39Qslt9C94E5nH6v45i5zaUWtqb5qPGepMitE9T4
+      - FREECURRENCY_API_KEY=fca_live_SOWNy9Sv0n9BP9ExI784mXXd8SFSIo96kks6Cexk
     networks:
       - app-network
 
@@ -177,7 +179,8 @@ services:
       - DATABASE_URL=postgresql://symfony:symfony@postgres:5432/exchange?serverVersion=16&charset=utf8
       - MESSENGER_TRANSPORT_DSN_FETCH=amqp://guest:guest@rabbitmq:5672/%2f/fetch
       - MESSENGER_TRANSPORT_DSN_SAVE=amqp://guest:guest@rabbitmq:5672/%2f/save
-      - FREECURRENCY_API_KEY=fca_live_39Qslt9C94E5nH6v45i5zaUWtqb5qPGepMitE9T4
+      #- FREECURRENCY_API_KEY=fca_live_39Qslt9C94E5nH6v45i5zaUWtqb5qPGepMitE9T4
+      - FREECURRENCY_API_KEY=fca_live_SOWNy9Sv0n9BP9ExI784mXXd8SFSIo96kks6Cexk
     networks:
       - app-network
 
