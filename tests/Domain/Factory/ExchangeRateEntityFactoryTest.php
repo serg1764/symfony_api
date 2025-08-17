@@ -19,9 +19,9 @@ use PHPUnit\Framework\TestCase;
 class ExchangeRateEntityFactoryTest extends TestCase
 {
     /**
-     * @test
+     * Тест создания сущности USD/EUR
      */
-    public function it_creates_usd_eur_entity(): void
+    public function testCreatesUsdEurEntity(): void
     {
         $baseCurrency = new Currency('USD');
         $quoteCurrency = new Currency('EUR');
@@ -34,9 +34,9 @@ class ExchangeRateEntityFactoryTest extends TestCase
     }
 
     /**
-     * @test
+     * Тест создания сущности EUR/USD
      */
-    public function it_creates_eur_usd_entity(): void
+    public function testCreatesEurUsdEntity(): void
     {
         $baseCurrency = new Currency('EUR');
         $quoteCurrency = new Currency('USD');
@@ -49,14 +49,14 @@ class ExchangeRateEntityFactoryTest extends TestCase
     }
 
     /**
-     * @test
+     * Тест выброса исключения для неподдерживаемой пары валют
      */
-    public function it_throws_exception_for_unsupported_pair(): void
+    public function testThrowsExceptionForUnsupportedPair(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Entity for currency pair USDGBP not found');
+        $this->expectExceptionMessage('Entity for currency pair RUBGBP not found');
 
-        $baseCurrency = new Currency('USD');
+        $baseCurrency = new Currency('RUB');
         $quoteCurrency = new Currency('GBP');
         $exchangeRate = new ExchangeRate(1.25);
 
@@ -64,9 +64,9 @@ class ExchangeRateEntityFactoryTest extends TestCase
     }
 
     /**
-     * @test
+     * Тест возврата правильного класса сущности
      */
-    public function it_returns_correct_entity_class(): void
+    public function testReturnsCorrectEntityClass(): void
     {
         $baseCurrency = new Currency('USD');
         $quoteCurrency = new Currency('EUR');
@@ -77,9 +77,9 @@ class ExchangeRateEntityFactoryTest extends TestCase
     }
 
     /**
-     * @test
+     * Тест возврата правильного имени таблицы
      */
-    public function it_returns_correct_table_name(): void
+    public function testReturnsCorrectTableName(): void
     {
         $baseCurrency = new Currency('EUR');
         $quoteCurrency = new Currency('USD');
@@ -90,24 +90,25 @@ class ExchangeRateEntityFactoryTest extends TestCase
     }
 
     /**
-     * @test
+     * Тест проверки поддерживаемых пар валют
      */
-    public function it_checks_supported_pairs(): void
+    public function testChecksSupportedPairs(): void
     {
         $this->assertTrue(ExchangeRateEntityFactory::isSupported(new Currency('USD'), new Currency('EUR')));
         $this->assertTrue(ExchangeRateEntityFactory::isSupported(new Currency('EUR'), new Currency('USD')));
-        $this->assertFalse(ExchangeRateEntityFactory::isSupported(new Currency('USD'), new Currency('GBP')));
+        $this->assertTrue(ExchangeRateEntityFactory::isSupported(new Currency('USD'), new Currency('GBP')));
+        $this->assertFalse(ExchangeRateEntityFactory::isSupported(new Currency('RUB'), new Currency('GBP')));
     }
 
     /**
-     * @test
+     * Тест возврата списка поддерживаемых пар валют
      */
-    public function it_returns_supported_pairs(): void
+    public function testReturnsSupportedPairs(): void
     {
         $supportedPairs = ExchangeRateEntityFactory::getSupportedPairs();
 
         $this->assertContains('USDEUR', $supportedPairs);
         $this->assertContains('EURUSD', $supportedPairs);
-        $this->assertCount(2, $supportedPairs);
+        $this->assertCount(6, $supportedPairs);
     }
 } 

@@ -187,9 +187,27 @@ tests/
 
 ## 🚀 Запуск тестов
 
+### 🚀 Быстрые команды
+```bash
+# Запустить все тесты с красивым выводом
+docker-compose exec php php ./vendor/bin/phpunit --testdox
+
+# Запустить только API тесты (включая HomeController)
+docker-compose exec php php ./vendor/bin/phpunit --testdox --testsuite "API Tests"
+
+# Запустить тест HomeController
+docker-compose exec php php ./vendor/bin/phpunit --testdox tests/Controller/TestControllerTest.php
+
+# Запустить тест ExchangeRateController
+docker-compose exec php php ./vendor/bin/phpunit --testdox tests/Presentation/Controller/ExchangeRateControllerTest.php
+```
+
 ### Все тесты
 ```bash
-# Стандартный способ
+# В Docker контейнере (рекомендуется)
+docker-compose exec php php ./vendor/bin/phpunit --testdox
+
+# Стандартный способ (локально)
 php vendor/bin/phpunit
 
 # Или через composer (опционально)
@@ -199,37 +217,40 @@ composer test
 ### По категориям
 ```bash
 # Unit тесты
-php vendor/bin/phpunit --testsuite="Unit Tests"
+docker-compose exec php php ./vendor/bin/phpunit --testdox --testsuite="Unit Tests"
 
 # Integration тесты
-php vendor/bin/phpunit --testsuite="Integration Tests"
+docker-compose exec php php ./vendor/bin/phpunit --testdox --testsuite="Integration Tests"
 
 # API тесты
-php vendor/bin/phpunit --testsuite="API Tests"
+docker-compose exec php php ./vendor/bin/phpunit --testdox --testsuite="API Tests"
 
 # Command тесты
-php vendor/bin/phpunit --testsuite="Command Tests"
+docker-compose exec php php ./vendor/bin/phpunit --testdox --testsuite="Command Tests"
 ```
 
 ### Конкретные тесты
 ```bash
 # Тест конкретного класса
-php vendor/bin/phpunit tests/Domain/ValueObject/CurrencyTest.php
+docker-compose exec php php ./vendor/bin/phpunit --testdox tests/Domain/ValueObject/CurrencyTest.php
 
 # Тест конкретного метода
-php vendor/bin/phpunit --filter testMethodName tests/Domain/ValueObject/CurrencyTest.php
+docker-compose exec php php ./vendor/bin/phpunit --filter testMethodName tests/Domain/ValueObject/CurrencyTest.php
+
+# Тест HomeController
+docker-compose exec php php ./vendor/bin/phpunit --testdox tests/Controller/TestControllerTest.php
 ```
 
 ### С покрытием кода
 ```bash
 # HTML отчет о покрытии
-php vendor/bin/phpunit --coverage-html coverage/
+docker-compose exec php php ./vendor/bin/phpunit --coverage-html var/coverage
 
 # Текстовый отчет
-php vendor/bin/phpunit --coverage-text
+docker-compose exec php php ./vendor/bin/phpunit --coverage-text
 
 # Clover XML для CI
-php vendor/bin/phpunit --coverage-clover coverage.xml
+docker-compose exec php php ./vendor/bin/phpunit --coverage-clover coverage.xml
 ```
 
 ### Альтернативные команды через composer
@@ -392,19 +413,34 @@ protected function tearDown(): void
 
 ## 🐛 Отладка тестов
 
+### Проверка работоспособности API
+```bash
+# Проверить, что API доступен
+curl http://localhost:8080/
+
+# Проверить эндпоинт курсов валют
+curl http://localhost:8080/api/exchange-rates/USD/EUR
+
+# Проверить список валют
+curl http://localhost:8080/api/exchange-rates/currencies
+
+# Проверить логи приложения
+docker-compose logs php
+```
+
 ### Включение отладки
 ```bash
 # Подробный вывод (PHPUnit 10+)
-php vendor/bin/phpunit --debug
+docker-compose exec php php ./vendor/bin/phpunit --debug
 
 # Остановка на первом провале
-php vendor/bin/phpunit --stop-on-failure
+docker-compose exec php php ./vendor/bin/phpunit --stop-on-failure
 
 # Фильтр по имени теста
-php vendor/bin/phpunit --filter testMethodName
+docker-compose exec php php ./vendor/bin/phpunit --filter testMethodName
 
 # Показать список тестов без выполнения
-php vendor/bin/phpunit --list-tests
+docker-compose exec php php ./vendor/bin/phpunit --list-tests
 
 # Или через composer
 composer test -- --debug

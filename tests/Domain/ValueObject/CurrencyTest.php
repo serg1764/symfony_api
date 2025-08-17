@@ -21,6 +21,15 @@ class CurrencyTest extends TestCase
         
         $this->assertEquals('USD', $currency->getCode());
         $this->assertEquals('USD', (string) $currency);
+
+        // Ваш лог в файл
+        $logMessage = date('Y-m-d H:i:s') . ' - Создана валюта USD в тесте' . PHP_EOL;
+        $logMessage .= 'Объект валюты: ' . var_export($currency, true) . PHP_EOL .
+            print_r($currency, true) . PHP_EOL .
+            "toString: " . $currency . PHP_EOL .
+            "JSON: " . json_encode($currency, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+        $logMessage .= '---' . PHP_EOL;
+        file_put_contents(__DIR__ . '/../../../var/log/test_log.txt', $logMessage, FILE_APPEND);
     }
 
     /**
